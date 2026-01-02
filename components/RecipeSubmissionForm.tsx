@@ -119,33 +119,73 @@ export default function RecipeSubmissionForm({ breadName, breadId: initialBreadI
       router.push('/login')
       return
     }
+
+    // Validate required fields
+    if (!selectedBreadId) {
+      alert('Please select a bread type')
+      return
+    }
+
+    if (!formData.title.trim()) {
+      alert('Please enter a recipe title')
+      return
+    }
+
+    if (!formData.author.trim()) {
+      alert('Please enter your name as the author')
+      return
+    }
+
+    // Validate ingredients
+    const filteredIngredients = formData.ingredients.filter(ing => ing.name.trim() && ing.amount.trim())
+    if (filteredIngredients.length === 0) {
+      alert('Please add at least one ingredient')
+      return
+    }
+
+    // Validate instructions
+    const filteredInstructions = formData.instructions.filter(inst => inst.trim())
+    if (filteredInstructions.length === 0) {
+      alert('Please add at least one instruction')
+      return
+    }
+
+    // Validate times are numbers
+    const prepTime = parseInt(formData.prepTime || '0')
+    const riseTime = parseInt(formData.riseTime || '0')
+    const bakeTime = parseInt(formData.bakeTime || '0')
+
+    if (isNaN(prepTime) || isNaN(riseTime) || isNaN(bakeTime)) {
+      alert('Please enter valid numbers for prep, rise, and bake times')
+      return
+    }
     
     setIsSubmitting(true)
 
     // Calculate total time
-    const totalTime = parseInt(formData.prepTime || '0') + 
-                     parseInt(formData.riseTime || '0') + 
-                     parseInt(formData.bakeTime || '0')
+    const totalTime = prepTime + riseTime + bakeTime
 
-    // Filter out empty ingredients, instructions, and tips
-    const filteredIngredients = formData.ingredients.filter(ing => ing.name.trim() && ing.amount.trim())
-    const filteredInstructions = formData.instructions.filter(inst => inst.trim())
+    // Filter out empty tips
     const filteredTips = formData.tips.filter(tip => tip.trim())
 
+    // Sanitize inputs
     const recipeData = {
-      title: formData.title,
-      author: formData.author,
+      title: formData.title.trim(),
+      author: formData.author.trim(),
       difficulty: formData.difficulty,
       time: {
-        prep: parseInt(formData.prepTime || '0'),
-        rise: parseInt(formData.riseTime || '0'),
-        bake: parseInt(formData.bakeTime || '0'),
+        prep: prepTime,
+        rise: riseTime,
+        bake: bakeTime,
         total: totalTime,
       },
-      yield: formData.yield,
-      ingredients: filteredIngredients,
-      instructions: filteredInstructions,
-      tips: filteredTips.length > 0 ? filteredTips : undefined,
+      yield: formData.yield.trim(),
+      ingredients: filteredIngredients.map(ing => ({
+        name: ing.name.trim(),
+        amount: ing.amount.trim()
+      })),
+      instructions: filteredInstructions.map(inst => inst.trim()),
+      tips: filteredTips.length > 0 ? filteredTips.map(tip => tip.trim()) : undefined,
     }
 
     // Submit recipe for admin review
@@ -158,7 +198,9 @@ export default function RecipeSubmissionForm({ breadName, breadId: initialBreadI
       setIsSubmitting(false)
       setShowSuccess(true)
     } catch (error) {
-      console.error('Failed to submit recipe:', error)
+      const err = error instanceof Error ? error : new Error('Unknown error')
+      console.error('Failed to submit recipe:', err)
+      alert('Failed to submit recipe. Please try again.')
       setIsSubmitting(false)
     }
     

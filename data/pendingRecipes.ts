@@ -53,7 +53,7 @@ export function submitRecipeForReview(
 ): PendingRecipe {
   const pendingRecipe: PendingRecipe = {
     ...recipe,
-    id: `pending-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+    id: `pending-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
     breadId,
     submittedBy: userId,
     submittedAt: new Date(),

@@ -20,6 +20,35 @@ export default function SignupPage() {
     e.preventDefault()
     setError('')
 
+    // Validate username
+    if (!username.trim()) {
+      setError('Username is required')
+      return
+    }
+
+    if (username.length < 3) {
+      setError('Username must be at least 3 characters')
+      return
+    }
+
+    if (!/^[a-zA-Z0-9_-]+$/.test(username)) {
+      setError('Username can only contain letters, numbers, underscores, and hyphens')
+      return
+    }
+
+    // Validate email
+    if (!email.trim()) {
+      setError('Email is required')
+      return
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email)) {
+      setError('Please enter a valid email address')
+      return
+    }
+
+    // Validate password
     if (password !== confirmPassword) {
       setError('Passwords do not match')
       return
@@ -33,10 +62,17 @@ export default function SignupPage() {
     setIsLoading(true)
 
     try {
-      await signup(username, email, password, name || undefined)
+      // Sanitize inputs
+      const sanitizedUsername = username.trim()
+      const sanitizedEmail = email.trim().toLowerCase()
+      const sanitizedName = name?.trim() || undefined
+      
+      await signup(sanitizedUsername, sanitizedEmail, password, sanitizedName)
       router.push('/')
     } catch (err) {
-      setError('Failed to create account. Please try again.')
+      const error = err instanceof Error ? err : new Error('Unknown error')
+      console.error('Signup error:', error)
+      setError(error.message || 'Failed to create account. Please try again.')
     } finally {
       setIsLoading(false)
     }
