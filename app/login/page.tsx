@@ -27,10 +27,34 @@ export default function LoginPage() {
     setError('')
     setIsLoading(true)
 
+    // Validate email
+    if (!email.trim()) {
+      setError('Email is required')
+      setIsLoading(false)
+      return
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email)) {
+      setError('Please enter a valid email address')
+      setIsLoading(false)
+      return
+    }
+
+    if (!password) {
+      setError('Password is required')
+      setIsLoading(false)
+      return
+    }
+
     try {
-      await login(email, password)
+      // Sanitize email
+      const sanitizedEmail = email.trim().toLowerCase()
+      await login(sanitizedEmail, password)
       router.push(redirect)
     } catch (err) {
+      const error = err instanceof Error ? err : new Error('Unknown error')
+      console.error('Login error:', error)
       setError('Failed to log in. Please check your credentials.')
     } finally {
       setIsLoading(false)

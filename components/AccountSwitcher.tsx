@@ -10,6 +10,8 @@ export default function AccountSwitcher() {
   const [hasUserAccount, setHasUserAccount] = useState(false)
 
   useEffect(() => {
+    if (typeof window === 'undefined') return
+    
     setHasAdminAccount(localStorage.getItem('adminUser') !== null)
     setHasUserAccount(localStorage.getItem('user') !== null)
   }, [user])

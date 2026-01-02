@@ -7,8 +7,18 @@ import { breads } from '@/data/breads'
 import BreadImage from '@/components/BreadImage'
 
 export default function AccountPage() {
-  const { user, logout } = useAuth()
+  const { user, logout, isLoading } = useAuth()
   const router = useRouter()
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-subtle flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-bread-neutralLight">Loading...</p>
+        </div>
+      </div>
+    )
+  }
 
   if (!user) {
     router.push('/login')

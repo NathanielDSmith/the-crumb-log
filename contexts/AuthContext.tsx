@@ -25,8 +25,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
-  // Load user from localStorage on mount
+  // Load user from localStorage on mount (client-side only)
   useEffect(() => {
+    if (typeof window === 'undefined') {
+      setIsLoading(false)
+      return
+    }
+
     const storedAdminUser = localStorage.getItem('adminUser')
     const storedUser = localStorage.getItem('user')
     
@@ -37,7 +42,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         parsedUser.joinedAt = new Date(parsedUser.joinedAt)
         setUser(parsedUser)
       } catch (error) {
-        console.error('Error parsing stored admin user:', error)
+        const err = error instanceof Error ? error : new Error('Unknown error parsing admin user')
+        console.error('Error parsing stored admin user:', err)
         localStorage.removeItem('adminUser')
       }
     } else if (storedUser) {
@@ -47,30 +53,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         parsedUser.joinedAt = new Date(parsedUser.joinedAt)
         setUser(parsedUser)
       } catch (error) {
-        console.error('Error parsing stored user:', error)
+        const err = error instanceof Error ? error : new Error('Unknown error parsing user')
+        console.error('Error parsing stored user:', err)
         localStorage.removeItem('user')
       }
     }
     setIsLoading(false)
   }, [])
 
-  // Save user to localStorage whenever it changes
+  // Save user to localStorage whenever it changes (client-side only)
   useEffect(() => {
+    if (typeof window === 'undefined') return
+
     if (user) {
       if (user.role === 'admin') {
         localStorage.setItem('adminUser', JSON.stringify(user))
-        // Keep regular user if it exists
-        const regularUser = localStorage.getItem('user')
-        if (!regularUser) {
-          // If no regular user exists, don't remove it
-        }
       } else {
         localStorage.setItem('user', JSON.stringify(user))
-        // Keep admin user if it exists
-        const adminUser = localStorage.getItem('adminUser')
-        if (!adminUser) {
-          // If no admin user exists, don't remove it
-        }
       }
     } else {
       localStorage.removeItem('user')
@@ -99,17 +98,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         ratings: {}
       }
       
-      // Save to appropriate storage
-      if (isAdminEmail) {
-        localStorage.setItem('adminUser', JSON.stringify(demoUser))
-      } else {
-        localStorage.setItem('user', JSON.stringify(demoUser))
+      // Save to appropriate storage (client-side only)
+      if (typeof window !== 'undefined') {
+        if (isAdminEmail) {
+          localStorage.setItem('adminUser', JSON.stringify(demoUser))
+        } else {
+          localStorage.setItem('user', JSON.stringify(demoUser))
+        }
       }
       
       setUser(demoUser)
     } catch (error) {
-      console.error('Login error:', error)
-      throw error
+      const err = error instanceof Error ? error : new Error('Unknown login error')
+      console.error('Login error:', err)
+      throw err
     } finally {
       setIsLoading(false)
     }
@@ -132,11 +134,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         submittedPhotos: [],
         ratings: {}
       }
-      localStorage.setItem('user', JSON.stringify(newUser))
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('user', JSON.stringify(newUser))
+      }
       setUser(newUser)
     } catch (error) {
-      console.error('Signup error:', error)
-      throw error
+      const err = error instanceof Error ? error : new Error('Unknown signup error')
+      console.error('Signup error:', err)
+      throw err
     } finally {
       setIsLoading(false)
     }
@@ -149,6 +154,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const switchToAdmin = () => {
+    if (typeof window === 'undefined') return
+
     const storedAdminUser = localStorage.getItem('adminUser')
     if (storedAdminUser) {
       try {
@@ -156,7 +163,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         parsedUser.joinedAt = new Date(parsedUser.joinedAt)
         setUser(parsedUser)
       } catch (error) {
-        console.error('Error parsing stored admin user:', error)
+        const err = error instanceof Error ? error : new Error('Unknown error parsing admin user')
+        console.error('Error parsing stored admin user:', err)
       }
     } else {
       // Create a demo admin user if one doesn't exist
@@ -177,6 +185,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const switchToUser = () => {
+    if (typeof window === 'undefined') return
+
     const storedUser = localStorage.getItem('user')
     if (storedUser) {
       try {
@@ -184,7 +194,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         parsedUser.joinedAt = new Date(parsedUser.joinedAt)
         setUser(parsedUser)
       } catch (error) {
-        console.error('Error parsing stored user:', error)
+        const err = error instanceof Error ? error : new Error('Unknown error parsing user')
+        console.error('Error parsing stored user:', err)
       }
     } else {
       // If no regular user exists, logout
